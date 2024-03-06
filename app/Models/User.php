@@ -42,4 +42,13 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+    
+    /**
+     * one user has many order
+     *
+     * @return void
+     */
+    public function order(){
+        return $this->hasMany(Order::class);
+    }
 }
