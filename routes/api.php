@@ -19,16 +19,14 @@ use App\Http\Controllers\OrderController;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
-
-Route::apiResource('/orders',OrderController::class);
-
-// 
+ 
 Route::post('/user-register',[UserController::class,'store']);
 Route::post('/user-login',[UserController::class,'login']);
 
 Route::middleware('auth:sanctum')->group(function(){
     Route::apiResource('/users',UserController::class);
     Route::apiResource('/products',ProductController::class);
+    Route::apiResource('/orders',OrderController::class);
 
     Route::get('/logout',[UserController::class,'logout']);
 });

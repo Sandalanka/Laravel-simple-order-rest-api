@@ -12,12 +12,11 @@ class Order extends Model
     protected $fillable = [
         'customer_id',
         'total_bill',
-        'order_status',
     ];
 
-    protected $casts = [
-        'order_status' => OrderStatusEnum::class
-    ];
+    // protected $casts = [
+    //     'order_status' => OrderStatusEnum::class
+    // ];
 
     public function customer(){
         return $this->belongsTo(User::class);

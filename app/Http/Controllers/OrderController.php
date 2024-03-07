@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Classes\ApiCatchError;
 use App\Models\Order;
 use App\Http\Requests\StoreOrderRequest;
 use App\Http\Requests\UpdateOrderRequest;
 use App\Interfaces\OrderInterface\OrderRepositoryInterface;
 use App\Interfaces\OrderDetailsInterface\OrderDetailsRepositoryInterface;
 use App\Http\Controllers\BaseController as BaseController;
+use Illuminate\Support\Facades\DB;
+use App\Http\Resources\OrderResource;
 
 class OrderController extends BaseController
 {
@@ -20,6 +23,7 @@ class OrderController extends BaseController
     {
         $this->orderRepositoryInterface = $orderRepositoryInterface;
         $this->orderDetailsRepositoryInterface = $orderDetailsRepositoryInterface;
+        $this->middleware('permission:create-order', ['only' => ['store']]);
     }
     
     
@@ -30,7 +34,8 @@ class OrderController extends BaseController
      */
     public function index()
     {
-        
+        $orders =$this->orderRepositoryInterface->index();
+        return $this->sendResponse(OrderResource::collection($orders),'',200);
     }
 
     /**
@@ -40,7 +45,8 @@ class OrderController extends BaseController
      */
     public function create()
     {
-        //
+        
+
     }
 
     /**
@@ -50,8 +56,29 @@ class OrderController extends BaseController
      * @return \Illuminate\Http\Response
      */
     public function store(StoreOrderRequest $request)
-    {  
-        
+    {   
+        $orderData =[
+            'customer_id' => $request->customer_id,
+            'total_bill'  => $request->total_bill,
+        ];
+        DB::beginTransaction();
+        try{
+            $order =$this->orderRepositoryInterface->store($orderData);
+            foreach($request->order_details as $details){
+                $orderDetails =[
+                    'order_id' => $order->id,
+                    'product_id' => $details['product_id'],
+                    'quantity' => $details['quantity'],
+                    'prices' => $details['prices']
+                ];
+                $this->orderDetailsRepositoryInterface->store($orderDetails);
+            }
+            DB::commit();
+            return $this->sendResponse(new OrderResource($order),'Order created succesful',201);
+
+        }catch(\Exception $ex){
+            return ApiCatchError::rollback($ex);
+        }
 
     }
 
@@ -61,9 +88,10 @@ class OrderController extends BaseController
      * @param  \App\Models\Order  $order
      * @return \Illuminate\Http\Response
      */
-    public function show(Order $order)
+    public function show($order)
     {
-        //
+        $order =$this->orderRepositoryInterface->getById($order);
+        return $this->sendResponse(new OrderResource($order),'',200);
     }
 
     /**
@@ -84,9 +112,9 @@ class OrderController extends BaseController
      * @param  \App\Models\Order  $order
      * @return \Illuminate\Http\Response
      */
-    public function update(UpdateOrderRequest $request, Order $order)
+    public function update(UpdateOrderRequest $request,  $id)
     {
-        //
+
     }
 
     /**
