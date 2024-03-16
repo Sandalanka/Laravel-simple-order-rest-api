@@ -90,8 +90,12 @@ class OrderController extends BaseController
      */
     public function show($order)
     {
-        $order =$this->orderRepositoryInterface->getById($order);
-        return $this->sendResponse(new OrderResource($order),'',200);
+        try{
+            $order =$this->orderRepositoryInterface->getById($order);
+            return $this->sendResponse(new OrderResource($order),'',200);
+        }catch(\Exception $ex){
+            return ApiCatchError::throw($ex);
+        }
     }
 
     /**
